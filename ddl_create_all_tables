@@ -1,0 +1,56 @@
+CREATE TABLE Album (
+    album_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    release_date DATE NOT NULL
+);
+
+---
+
+CREATE TABLE Artist (
+    artist_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+---
+
+CREATE TABLE Track (
+    track_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    duration INT NOT NULL,
+    album_id INT NOT NULL,
+    CONSTRAINT fk_album
+        FOREIGN KEY(album_id)
+        REFERENCES Album(album_id)
+        ON DELETE CASCADE
+);
+
+---
+
+CREATE TABLE AudioFeatures (
+    feature_id SERIAL PRIMARY KEY,
+    track_id INT NOT NULL UNIQUE,
+    danceability FLOAT NOT NULL,
+    energy FLOAT NOT NULL,
+    valence FLOAT NOT NULL,
+    loudness FLOAT NOT NULL,
+    CONSTRAINT fk_track
+        FOREIGN KEY(track_id)
+        REFERENCES Track(track_id)
+        ON DELETE CASCADE
+);
+
+---
+
+CREATE TABLE TrackArtists (
+    track_id INT NOT NULL,
+    artist_id INT NOT NULL,
+    CONSTRAINT fk_track
+        FOREIGN KEY(track_id)
+        REFERENCES Track(track_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_artist
+        FOREIGN KEY(artist_id)
+        REFERENCES Artist(artist_id)
+        ON DELETE CASCADE,
+    PRIMARY KEY (track_id, artist_id)
+);
