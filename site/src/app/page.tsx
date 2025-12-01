@@ -85,24 +85,20 @@ export default function Home() {
 	};
 
 	return (
-		<div className="min-h-screen w-full bg-neutral-950 flex flex-col items-center p-4 text-white font-sans">
+		<div className="flex flex-col items-center p-4 text-white font-sans">
 			<div className="text-center mt-12 mb-10">
 				<h1 className="text-6xl font-bold bg-gradient-to-r from-green-400 to-blue-500 text-transparent bg-clip-text mb-2">
 					Groovee
 				</h1>
-				<p className="text-neutral-400">Spotify Audio Analyzer</p>
 			</div>
-
 			<div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
-				{/* LEFT COLUMN: Input & Library */}
 				<div className="flex flex-col gap-6">
-					{/* Input Box */}
-					<div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800">
+					<div className="bg-neutral-900 p-6 rounded-2xl border border-neutral-800">
 						<h3 className="text-lg font-semibold mb-4 text-white">Import Song</h3>
 						<div className="flex flex-col gap-3">
 							<input
 								type="text"
-								placeholder="Spotify URL..."
+								placeholder="Spotify URL"
 								value={url}
 								onChange={e => setUrl(e.target.value)}
 								className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-800 focus:border-green-500 outline-none text-sm"
@@ -114,16 +110,19 @@ export default function Home() {
 							>
 								{loading ? "Processing..." : "Add to Library"}
 							</button>
-							{error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+							{error && <p className="text-red-500 text-xs mt-1">{error}</p>}
 						</div>
 					</div>
-
-					{/* Library List */}
-					<div className="bg-neutral-900/50 rounded-2xl border border-neutral-800 flex-1 overflow-hidden flex flex-col h-[500px]">
-						<div className="p-4 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm">
-							<h3 className="text-lg font-semibold">Your Library</h3>
+					<div className="bg-neutral-900 rounded-2xl border border-neutral-800 flex-1 overflow-hidden flex flex-col h-[500px]">
+						<div className="p-4">
+							<h3 className="text-lg font-semibold">Songs in database</h3>
 						</div>
 						<div className="overflow-y-auto flex-1 p-2 space-y-2">
+							{songs.length === 0 && (
+								<div className="text-center text-neutral-500 text-sm my-10">
+									No songs imported yet.
+								</div>
+							)}
 							{songs.map(song => (
 								<div
 									key={song.id}
@@ -135,22 +134,19 @@ export default function Home() {
 									}`}
 								>
 									<div className="pr-8">
-										{" "}
-										{/* Add padding for delete button */}
 										<div className="font-medium text-sm truncate">
 											{song.track_name}
 										</div>
 										<div className="text-xs text-neutral-400 truncate">
-											{song.artist} • {song.album}
+											{song.artist}
 										</div>
 									</div>
-
-									{/* Delete Button - Shows on Hover */}
 									<button
 										onClick={e => handleDelete(e, song.id)}
 										className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
 										title="Delete song"
 									>
+										{/* took this shi striaght from https://icons.getbootstrap.com/icons/trash/ */}
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											width="16"
@@ -169,28 +165,19 @@ export default function Home() {
 									</button>
 								</div>
 							))}
-							{songs.length === 0 && (
-								<div className="text-center text-neutral-500 text-sm mt-10">
-									No songs imported yet.
-								</div>
-							)}
 						</div>
 					</div>
 				</div>
 
 				<div className="lg:col-span-2">
 					{selectedSong ? (
-						<div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 h-full flex flex-col animate-in fade-in duration-500">
+						<div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 h-full flex flex-col animate-in fade-in duration-500">
 							<div className="mb-8">
 								<h2 className="text-4xl font-bold text-white mb-2">
 									{selectedSong.track_name}
 								</h2>
 								<div className="flex items-center gap-2 text-neutral-400 text-lg">
-									<span className="text-green-400 font-medium">
-										{selectedSong.artist}
-									</span>
-									<span>•</span>
-									<span>{selectedSong.album}</span>
+									{selectedSong.artist}
 								</div>
 							</div>
 
@@ -199,19 +186,19 @@ export default function Home() {
 									label="Danceability"
 									value={selectedSong.audioFeatures.danceability}
 									color="bg-pink-500"
-									description="How suitable a track is for dancing."
+									description="The danceability of the song"
 								/>
 								<FeatureCard
 									label="Energy"
 									value={selectedSong.audioFeatures.energy}
 									color="bg-yellow-500"
-									description="Perceptual measure of intensity and activity."
+									description="How much energy is in a song"
 								/>
 								<FeatureCard
 									label="Valence (Mood)"
 									value={selectedSong.audioFeatures.valence}
 									color="bg-purple-500"
-									description="Musical positiveness (Happy vs. Sad)."
+									description="Musical positiveness (Happy vs Sad)"
 								/>
 								<FeatureCard
 									label="Loudness"
@@ -222,13 +209,13 @@ export default function Home() {
 									}
 									displayValue={`${selectedSong.audioFeatures.loudness.toFixed(1)} dB`}
 									color="bg-cyan-500"
-									description="Overall loudness of a track in decibels."
+									description="Overall loudness of a track in decibels"
 								/>
 							</div>
 						</div>
 					) : (
-						<div className="h-full flex flex-col items-center justify-center text-neutral-500 border border-neutral-800 border-dashed rounded-3xl bg-neutral-900/30">
-							<p>Select a song from the library to visualize</p>
+						<div className="h-full flex flex-col items-center justify-center text-neutral-500 border border-neutral-800 rounded-2xl bg-neutral-900">
+							<p>Select a song from the database to visualize</p>
 						</div>
 					)}
 				</div>
