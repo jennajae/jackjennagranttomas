@@ -121,3 +121,13 @@ export async function getAllSongs() {
 		client.release();
 	}
 }
+
+export async function deleteSong(trackId: number) {
+	const client = await db.connect();
+	try {
+		await client.query("DELETE FROM Track WHERE track_id = $1", [trackId]);
+		return { success: true };
+	} finally {
+		client.release();
+	}
+}
