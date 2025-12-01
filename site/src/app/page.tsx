@@ -87,7 +87,8 @@ export default function Home() {
 	return (
 		<div className="flex flex-col items-center p-4 text-white font-sans">
 			<div className="text-center mt-12 mb-10">
-				<h1 className="text-6xl font-bold bg-gradient-to-r from-green-400 to-blue-500 text-transparent bg-clip-text mb-2">
+				{/* logo for Groovee*/}
+				<h1 className="text-5xl font-bold text-green-500 mb-2">
 					Groovee
 				</h1>
 			</div>

@@ -84,16 +84,8 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 export async function getAllSongs() {
 	const client = await db.connect();
 	try {
-		const query = `
-      SELECT 
-        t.track_id as id,
-        t.name as track_name,
-        al.name as album,
-        STRING_AGG(ar.name, ', ') as artist,
-        af.danceability, 
-        af.energy, 
-        af.valence, 
-        af.loudness
+		const query = 
+	  `SELECT t.track_id as id, t.name as track_name, al.name as album, STRING_AGG(ar.name, ', ') as artist, af.danceability, af.energy, af.valence, af.loudness
       FROM Track t
       JOIN Album al ON t.album_id = al.album_id
       LEFT JOIN AudioFeatures af ON t.track_id = af.track_id
@@ -104,7 +96,7 @@ export async function getAllSongs() {
     `;
 		const result = await client.query(query);
 
-		// Format the results to match our SongData type
+		// result to match our SongData type
 		return result.rows.map(row => ({
 			id: row.id,
 			track_name: row.track_name,
