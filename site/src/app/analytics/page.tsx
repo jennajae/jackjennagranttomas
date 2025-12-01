@@ -26,26 +26,26 @@ export default function AnalyticsPage() {
 	};
 
 	return (
-		<div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-			<div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-				<h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+		<div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6">
+			<div className="bg-neutral-900 border border-neutral-700 rounded-lg p-5">
+				<h3 className="text-xl font-bold text-white mb-2">
 					High Energy Artists
 				</h3>
-				<p className="text-neutral-400 text-sm mb-6">
+				<p className="text-neutral-400 text-sm mb-4">
 					Artists with the most average energy from all of therir songs in the database
 				</p>
-				<div className="space-y-4">
+				<div className="space-y-2">
 					{analytics?.topArtists.map((artist, i) => (
 						<div
 							key={i}
-							className="flex items-center justify-between p-3 bg-neutral-950/50 rounded-lg border border-neutral-800/50"
+							className="flex items-center justify-between p-2 bg-neutral-800 rounded"
 						>
-							<div className="flex items-center gap-3">
-								<span className="text-neutral-500 font-mono text-sm">
-									#{i + 1}
+							<div className="flex items-center gap-2">
+								<span className="text-neutral-500 text-sm">
+									{i + 1}.
 								</span>
 								<div>
-									<div className="font-medium text-white">
+									<div className="text-white text-sm">
 										{artist.name}
 									</div>
 									<div className="text-xs text-neutral-500">
@@ -54,7 +54,7 @@ export default function AnalyticsPage() {
 								</div>
 							</div>
 							<div className="text-right">
-								<div className="text-yellow-500 font-bold">
+								<div className="text-orange-400 font-bold">
 									{(Number(artist.avg_energy) * 100).toFixed(0)}%
 								</div>
 								<div className="text-xs text-neutral-600">
@@ -71,23 +71,23 @@ export default function AnalyticsPage() {
 				</div>
 			</div>
 
-			<div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-				<h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+			<div className="bg-neutral-900 border border-neutral-700 rounded-lg p-5">
+				<h3 className="text-xl font-bold text-white mb-2">
 					Longest Albums
 				</h3>
-				<p className="text-neutral-400 text-sm mb-6">Longest albums in the database</p>
-				<div className="space-y-4">
+				<p className="text-neutral-400 text-sm mb-4">albums sorted by total duration</p>
+				<div className="space-y-2">
 					{analytics?.longestAlbums.map((album, i) => (
 						<div
 							key={i}
-							className="flex items-center justify-between p-3 bg-neutral-950/50 rounded-lg border border-neutral-800/50"
+							className="flex items-center justify-between p-2 bg-neutral-800 rounded"
 						>
-							<div className="flex items-center gap-3">
-								<span className="text-neutral-500 font-mono text-sm">
-									#{i + 1}
+							<div className="flex items-center gap-2">
+								<span className="text-neutral-500 text-sm">
+									{i + 1}.
 								</span>
 								<div>
-									<div className="font-medium text-white">
+									<div className="text-white text-sm">
 										{album.name}
 									</div>
 									<div className="text-xs text-neutral-500">

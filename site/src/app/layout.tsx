@@ -15,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						<h1 className="text-6xl font-bold text-green-400 mb-2">
 							Groovee
 						</h1>
+						<p className="text-neutral-400 text-sm">a spotify song analyzer</p>
 					</div>
 					<Navbar />
 					<div className="text-white w-full p-4 flex justify-center">{children}</div>
