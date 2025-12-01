@@ -11,7 +11,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body suppressHydrationWarning>
 				<div className="flex flex-col items-center">
 					<div className="text-center mt-12 mb-10">
-						<h1 className="text-6xl font-bold bg-gradient-to-r from-green-400 to-blue-500 text-transparent bg-clip-text mb-2">
+						{/* main logo for site*/}
+						<h1 className="text-6xl font-bold text-green-400 mb-2">
 							Groovee
 						</h1>
 					</div>
