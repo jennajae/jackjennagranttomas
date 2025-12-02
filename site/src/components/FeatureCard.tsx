@@ -17,20 +17,20 @@ export default function FeatureCard({
 	const percentage = Math.round(clampedValue * 100);
 
 	return (
-		<div className="bg-neutral-950 border border-neutral-800 p-6 rounded-2xl flex flex-col gap-4 shadow-sm">
+		<div className="bg-neutral-800 border border-neutral-600 p-4 rounded flex flex-col gap-3">
 			<div className="flex justify-between items-start">
 				<div>
-					<span className="text-white font-semibold text-lg block">{label}</span>
-					<span className="text-neutral-500 text-xs block mt-1">{description}</span>
+					<span className="text-white font-medium block">{label}</span>
+					<span className="text-neutral-500 text-xs">{description}</span>
 				</div>
-				<span className="text-white font-mono text-xl font-bold">
+				<span className="text-white font-mono font-bold">
 					{displayValue || `${percentage}%`}
 				</span>
 			</div>
 
-			<div className="w-full h-4 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+			<div className="w-full h-3 bg-neutral-700 rounded overflow-hidden">
 				<div
-					className={`h-full ${color} transition-all duration-1000 ease-out`}
+					className={`h-full ${color}`}
 					style={{ width: `${percentage}%` }}
 				/>
 			</div>

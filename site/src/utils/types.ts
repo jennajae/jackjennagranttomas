@@ -10,3 +10,16 @@ export type SongData = {
 		loudness: number;
 	};
 };
+
+export type ArtistAnalytics = {
+	name: string;
+	track_count: string;
+	avg_energy: number;
+	avg_danceability: number;
+};
+
+export type AlbumAnalytics = {
+	name: string;
+	track_count: string;
+	total_duration_minutes: number;
+};

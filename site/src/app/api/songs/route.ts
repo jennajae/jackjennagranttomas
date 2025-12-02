@@ -10,7 +10,7 @@ export async function GET() {
 			data: songs,
 		});
 	} catch (error: any) {
-		console.error("Database Error:", error);
-		return NextResponse.json({ error: "Failed to fetch songs" }, { status: 500 });
+		console.error("database error:", error);
+		return NextResponse.json({ error: "failed to fetch songs" }, { status: 500 });
 	}
 }

@@ -26,6 +26,12 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			);
 			albumId = insertAlbum.rows[0].album_id;
 		}
+		
+		const checkTrack = await client.query("SELECT track_id FROM Track WHERE name = $1 AND album_id = $2", [trackData.name, albumId]);
+
+		if(checkTrack.rows.length > 0) {
+			throw new Error(`Track '${trackData.name}' in album '${albumName}' already exists.`)
+		}
 
 		const checkTrack = await client.query(
 			"SELECT track_id FROM Track WHERE name = $1 AND album_id = $2",
@@ -131,39 +137,42 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 
 export async function getAllSongs() {
 	const client = await db.connect();
+
 	try {
 		const query = `
       SELECT 
-        t.track_id as id,
-        t.name as track_name,
-        al.name as album,
-        STRING_AGG(ar.name, ', ') as artist,
-        af.danceability, 
-        af.energy, 
-        af.valence, 
-        af.loudness
-      FROM Track t
-      JOIN Album al ON t.album_id = al.album_id
-      LEFT JOIN AudioFeatures af ON t.track_id = af.track_id
-      LEFT JOIN TrackArtists ta ON t.track_id = ta.track_id
-      LEFT JOIN Artist ar ON ta.artist_id = ar.artist_id
-      GROUP BY t.track_id, t.name, al.name, af.danceability, af.energy, af.valence, af.loudness
-      ORDER BY t.track_id DESC;
+        Track.track_id, 
+        Track.name, 
+        Album.name AS album_name, 
+        AudioFeatures.danceability, 
+        AudioFeatures.energy, 
+        AudioFeatures.valence, 
+        AudioFeatures.loudness,
+        STRING_AGG(Artist.name, ', ') AS artist_names
+      FROM Track
+      JOIN Album ON Track.album_id = Album.album_id
+      LEFT JOIN AudioFeatures ON Track.track_id = AudioFeatures.track_id
+      LEFT JOIN TrackArtists ON Track.track_id = TrackArtists.track_id
+      LEFT JOIN Artist ON TrackArtists.artist_id = Artist.artist_id
+      GROUP BY Track.track_id, Track.name, Album.name, AudioFeatures.danceability, AudioFeatures.energy, AudioFeatures.valence, AudioFeatures.loudness
+      ORDER BY Track.track_id DESC
     `;
-		const result = await client.query(query);
 
-		return result.rows.map(row => ({
-			id: row.id,
-			track_name: row.track_name,
-			artist: row.artist,
-			album: row.album,
-			audioFeatures: {
-				danceability: row.danceability ?? 0,
-				energy: row.energy ?? 0,
-				valence: row.valence ?? 0,
-				loudness: row.loudness ?? 0,
-			},
-		}));
+		const result = await client.query(query);
+		return result.rows.map(row => {
+			return {
+				id: row.track_id,
+				track_name: row.name,
+				artist: row.artist_names,
+				album: row.album_name,
+				audioFeatures: {
+					danceability: row.danceability || 0,
+					energy: row.energy || 0,
+					valence: row.valence || 0,
+					loudness: row.loudness || 0,
+				},
+			};
+		});
 	} finally {
 		client.release();
 	}
@@ -173,7 +182,52 @@ export async function deleteSong(trackId: number) {
 	const client = await db.connect();
 	try {
 		await client.query("DELETE FROM Track WHERE track_id = $1", [trackId]);
-		return { success: true };
+		return {
+			success: true,
+		};
+	} finally {
+		client.release();
+	}
+}
+
+export async function getAnalytics() {
+	const client = await db.connect();
+
+	try {
+		const artistQuery = `
+      SELECT 
+        Artist.name, 
+        COUNT(Track.track_id) as track_count,
+        AVG(AudioFeatures.energy) as avg_energy,
+        AVG(AudioFeatures.danceability) as avg_danceability
+      FROM Artist
+      JOIN TrackArtists ON Artist.artist_id = TrackArtists.artist_id
+      JOIN Track ON TrackArtists.track_id = Track.track_id
+      JOIN AudioFeatures ON Track.track_id = AudioFeatures.track_id
+      GROUP BY Artist.artist_id, Artist.name
+      ORDER BY avg_energy DESC
+      LIMIT 5
+    `;
+
+		const albumQuery = `
+      SELECT 
+        Album.name,
+        COUNT(Track.track_id) as track_count,
+        SUM(Track.duration) / 60000.0 as total_duration_minutes
+      FROM Album
+      JOIN Track ON Album.album_id = Track.album_id
+      GROUP BY Album.album_id, Album.name
+      ORDER BY total_duration_minutes DESC
+      LIMIT 5
+    `;
+
+		const artistResults = await client.query(artistQuery);
+		const albumResults = await client.query(albumQuery);
+
+		return {
+			topArtists: artistResults.rows,
+			longestAlbums: albumResults.rows,
+		};
 	} finally {
 		client.release();
 	}
