@@ -22,6 +22,12 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			);
 			albumId = insertAlbum.rows[0].album_id;
 		}
+		
+		const checkTrack = await client.query("SELECT track_id FROM Track WHERE name = $1 AND album_id = $2", [trackData.name, albumId]);
+
+		if(checkTrack.rows.length > 0) {
+			throw new Error(`Track '${trackData.name}' in album '${albumName}' already exists.`)
+		}
 
 		const insertTrack = await client.query(
 			"INSERT INTO Track (name, duration, album_id) VALUES ($1, $2, $3) RETURNING track_id",
