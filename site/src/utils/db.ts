@@ -11,10 +11,16 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 		const albumName = trackData.album.name;
 		const releaseDate = formatReleaseDate(trackData.album.release_date);
 
+		// Check if album exists
 		const checkAlbum = await client.query("SELECT album_id FROM Album WHERE name = $1", [albumName]);
 
 		if (checkAlbum.rows.length > 0) {
 			albumId = checkAlbum.rows[0].album_id;
+			// UPDATE: Update album release date if it changed
+			await client.query(
+				"UPDATE Album SET release_date = $1 WHERE album_id = $2",
+				[releaseDate, albumId],
+			);
 		} else {
 			const insertAlbum = await client.query(
 				"INSERT INTO Album (name, release_date) VALUES ($1, $2) RETURNING album_id",
@@ -23,12 +29,33 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			albumId = insertAlbum.rows[0].album_id;
 		}
 
-		const insertTrack = await client.query(
-			"INSERT INTO Track (name, duration, album_id) VALUES ($1, $2, $3) RETURNING track_id",
-			[trackData.name, trackData.duration_ms, albumId],
+		// Check if track already exists (by name and album)
+		const checkTrack = await client.query(
+			"SELECT track_id FROM Track WHERE name = $1 AND album_id = $2",
+			[trackData.name, albumId],
 		);
-		const newTrackId = insertTrack.rows[0].track_id;
 
+		let trackId;
+		let isUpdate = false;
+
+		if (checkTrack.rows.length > 0) {
+			// UPDATE: Track exists, update its duration
+			trackId = checkTrack.rows[0].track_id;
+			isUpdate = true;
+			await client.query(
+				"UPDATE Track SET duration = $1 WHERE track_id = $2",
+				[trackData.duration_ms, trackId],
+			);
+		} else {
+			// INSERT: Track doesn't exist, insert new
+			const insertTrack = await client.query(
+				"INSERT INTO Track (name, duration, album_id) VALUES ($1, $2, $3) RETURNING track_id",
+				[trackData.name, trackData.duration_ms, albumId],
+			);
+			trackId = insertTrack.rows[0].track_id;
+		}
+
+		// Handle artists
 		for (const artist of trackData.artists) {
 			let artistId;
 			const artistName = artist.name;
@@ -47,31 +74,62 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 				artistId = insertArtist.rows[0].artist_id;
 			}
 
-			await client.query("INSERT INTO TrackArtists (track_id, artist_id) VALUES ($1, $2)", [
-				newTrackId,
-				artistId,
-			]);
+			// Only insert track-artist relationship if it doesn't exist
+			const checkTrackArtist = await client.query(
+				"SELECT 1 FROM TrackArtists WHERE track_id = $1 AND artist_id = $2",
+				[trackId, artistId],
+			);
+			if (checkTrackArtist.rows.length === 0) {
+				await client.query("INSERT INTO TrackArtists (track_id, artist_id) VALUES ($1, $2)", [
+					trackId,
+					artistId,
+				]);
+			}
 		}
 
-		await client.query(
-			`INSERT INTO AudioFeatures 
-      (track_id, danceability, energy, valence, loudness) 
-      VALUES ($1, $2, $3, $4, $5)`,
-			[
-				newTrackId,
-				featuresData.danceability ?? 0.0,
-				featuresData.energy ?? 0.0,
-				featuresData.valence ?? 0.0,
-				featuresData.loudness ?? 0.0,
-			],
+		// Check if audio features exist for this track
+		const checkFeatures = await client.query(
+			"SELECT track_id FROM AudioFeatures WHERE track_id = $1",
+			[trackId],
 		);
+
+		if (checkFeatures.rows.length > 0) {
+			// UPDATE: Audio features exist, update them
+			await client.query(
+				`UPDATE AudioFeatures 
+				SET danceability = $1, energy = $2, valence = $3, loudness = $4
+				WHERE track_id = $5`,
+				[
+					featuresData.danceability ?? 0.0,
+					featuresData.energy ?? 0.0,
+					featuresData.valence ?? 0.0,
+					featuresData.loudness ?? 0.0,
+					trackId,
+				],
+			);
+		} else {
+			// INSERT: Audio features don't exist, insert new
+			await client.query(
+				`INSERT INTO AudioFeatures 
+				(track_id, danceability, energy, valence, loudness) 
+				VALUES ($1, $2, $3, $4, $5)`,
+				[
+					trackId,
+					featuresData.danceability ?? 0.0,
+					featuresData.energy ?? 0.0,
+					featuresData.valence ?? 0.0,
+					featuresData.loudness ?? 0.0,
+				],
+			);
+		}
 
 		await client.query("COMMIT");
 
 		return {
-			track_id: newTrackId,
+			track_id: trackId,
 			track_name: trackData.name,
 			album: albumName,
+			updated: isUpdate,
 		};
 	} catch (error) {
 		await client.query("ROLLBACK");
