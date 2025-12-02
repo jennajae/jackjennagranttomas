@@ -11,12 +11,10 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 		const albumName = trackData.album.name;
 		const releaseDate = formatReleaseDate(trackData.album.release_date);
 
-		// Check if album exists
 		const checkAlbum = await client.query("SELECT album_id FROM Album WHERE name = $1", [albumName]);
 
 		if (checkAlbum.rows.length > 0) {
 			albumId = checkAlbum.rows[0].album_id;
-			// UPDATE: Update album release date if it changed
 			await client.query(
 				"UPDATE Album SET release_date = $1 WHERE album_id = $2",
 				[releaseDate, albumId],
@@ -29,7 +27,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			albumId = insertAlbum.rows[0].album_id;
 		}
 
-		// Check if track already exists (by name and album)
 		const checkTrack = await client.query(
 			"SELECT track_id FROM Track WHERE name = $1 AND album_id = $2",
 			[trackData.name, albumId],
@@ -39,7 +36,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 		let isUpdate = false;
 
 		if (checkTrack.rows.length > 0) {
-			// UPDATE: Track exists, update its duration
 			trackId = checkTrack.rows[0].track_id;
 			isUpdate = true;
 			await client.query(
@@ -47,7 +43,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 				[trackData.duration_ms, trackId],
 			);
 		} else {
-			// INSERT: Track doesn't exist, insert new
 			const insertTrack = await client.query(
 				"INSERT INTO Track (name, duration, album_id) VALUES ($1, $2, $3) RETURNING track_id",
 				[trackData.name, trackData.duration_ms, albumId],
@@ -55,7 +50,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			trackId = insertTrack.rows[0].track_id;
 		}
 
-		// Handle artists
 		for (const artist of trackData.artists) {
 			let artistId;
 			const artistName = artist.name;
@@ -74,7 +68,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 				artistId = insertArtist.rows[0].artist_id;
 			}
 
-			// Only insert track-artist relationship if it doesn't exist
 			const checkTrackArtist = await client.query(
 				"SELECT 1 FROM TrackArtists WHERE track_id = $1 AND artist_id = $2",
 				[trackId, artistId],
@@ -87,14 +80,12 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 			}
 		}
 
-		// Check if audio features exist for this track
 		const checkFeatures = await client.query(
 			"SELECT track_id FROM AudioFeatures WHERE track_id = $1",
 			[trackId],
 		);
 
 		if (checkFeatures.rows.length > 0) {
-			// UPDATE: Audio features exist, update them
 			await client.query(
 				`UPDATE AudioFeatures 
 				SET danceability = $1, energy = $2, valence = $3, loudness = $4
@@ -108,7 +99,6 @@ export async function saveSongToDatabase(trackData: any, featuresData: any) {
 				],
 			);
 		} else {
-			// INSERT: Audio features don't exist, insert new
 			await client.query(
 				`INSERT INTO AudioFeatures 
 				(track_id, danceability, energy, valence, loudness) 
@@ -162,7 +152,6 @@ export async function getAllSongs() {
     `;
 		const result = await client.query(query);
 
-		// Format the results to match our SongData type
 		return result.rows.map(row => ({
 			id: row.id,
 			track_name: row.track_name,
